@@ -45,15 +45,26 @@ train$Sex <- as.integer(train$Sex) - 1
 ```
 
 ## How to transform data? What about age?
-```{r, fig1, fig.height = 4, fig.width = 7, fig.align = "center", warning=FALSE}
+```{r, fig1, fig.height = 3, fig.width = 5, fig.align = "center", warning=FALSE}
+ggplot(train, aes(Age)) + 
+  geom_density(alpha=0.5, aes(fill=factor(Survived))) + 
+  geom_vline(xintercept = 10) +
+  theme(legend.position = "bottom")
 
-# look at histograms of the two continuous variables to think about transformation
-ggplot(train, aes(Age)) + geom_density(alpha=0.5, aes(fill=factor(Survived))) + geom_vline(xintercept = 10)
-train$is_child <- as.integer(train$Age < 10)
+train$is_child <- as.integer(train$Age < 10) # make a column specifying child or not
+
 ```
 
+## How to transform data? What about age?
+```{r, fig2, fig.height = 4, fig.width = 6, fig.align = "center", warning=FALSE}
+# look specifically whether a child is more likely to survive
+ggplot(train, aes(x = is_child, fill=factor(Survived))) + 
+  geom_bar(position = "dodge") 
+```
+
+
 ## Transform Fare?
-```{r, fig2, fig.height = 4, fig.width = 7, fig.align = "center"}
+```{r, fig3, fig.height = 4, fig.width = 7, fig.align = "center"}
 par(mfrow=c(1,2))
 hist(train$Fare)
 hist(log(train$Fare))
@@ -61,23 +72,35 @@ train$logfare <- log(train$Fare + 1)
 ```
 
 ## Simplify family size indicators 
-```{r feature_transform, fig4, fig.height = 4, fig.width = 7, fig.align = "center", cache=TRUE}
+```{r, fig4, fig.height = 4, fig.width = 6, fig.align = "center", warning=FALSE}
 # Sibsp: # of siblings and spouses aboard
 # Parch: # of parents and children aboard
-
 train$fam_size <- train$SibSp + train$Parch
-ggplot(train, aes(fam_size)) + geom_density(alpha=0.5, aes(fill=factor(Survived)))
 
-train$single <- as.integer(train$fam_size == 0)
+#density plot for family size
+ggplot(train, aes(fam_size)) + 
+  geom_density(alpha=0.5, aes(fill=factor(Survived))) +
+  theme(legend.position = "bottom")
+
+```
+
+## Simplify family size indicators
+```{r, fig5, fig.height = 3, fig.width = 5, fig.align = "center", warning=FALSE}
+# look at actual survival numbers for different family sizes
+train$fam_size_groups <- ordered(ifelse(train$fam_size == 0, "single", 
+                                        ifelse(train$fam_size > 3, "more_than_3", "medium")), 
+                                 levels = c("single", "medium", "more_than_3"))
+ggplot(train, aes(x = fam_size_groups, fill=factor(Survived))) + geom_bar(position = "dodge") 
+# make columns for both being single and having a big family
+train$single <- as.integer(train$fam_size == 0) 
 train$fam_too_big <- as.integer(train$fam_size > 3) 
-
 ```
 
 ## How do variables correlate with survival?
 ```{r}
 sub <- c("Survived","Pclass","Sex","Age", "is_child","SibSp", "Parch", "fam_size","single","fam_too_big", "Fare","logfare")
 train_sub <- train[colnames(train) %in% sub]
-cor(na.omit(train_sub))
+data.frame(SurvivedCorr = cor(na.omit(train_sub))[,1])
 ```
 
 
@@ -103,8 +126,6 @@ fitControl <- trainControl(
 
 ## k-nearest neighbor with cross validation
 ```{r knn_CV2,cache=TRUE, results='hide',dependson='feature_transform'}
-
-set.seed(1)
 knn_survived_caret_CV3 <- train(features3, # features
                             as.factor(train$Survived), # outcome
                             method = "knn",
@@ -117,7 +138,7 @@ knn_survived_caret_CV3 <- train(features3, # features
 knn_survived_caret_CV3
 ```
 ## Can easily visualize which parameter is best with ggplot and model
-```{r, fig3, fig.height = 4, fig.width = 7, fig.align = "center"}
+```{r, fig6, fig.height = 4, fig.width = 7, fig.align = "center"}
 ggplot(knn_survived_caret_CV3)
 ```
 
@@ -194,16 +215,8 @@ nn_survived_caret_CV3_knnimpute
 
 ```
 
-## Varible importance
-```{r}
-varImp(nn_survived_caret_CV3_knnimpute, scale = FALSE)
-
-```
-
-
-
-## test the models on the test data
-#### perform same transformations as performed on training data
+## Test data!
+#### Transform features in same way as training data
 ```{r}
 test <- read.delim("./test.csv", sep = ",", header = TRUE)
 
@@ -215,13 +228,6 @@ test$single <- as.integer(test$fam_size == 0)
 test$fam_too_big <- as.integer(test$fam_size > 3) 
 
 ```
-
-## look at test data (with transformations)
-```{r}
-str(test)
-```
-
-
 
 ## subset test data as we did for training data
 ```{r}
@@ -255,7 +261,6 @@ predictions_test_submit_nn_CV3_knnimpute <- data.frame(PassengerId = test$Passen
 ```
 
 ## How did we do?
-
 ```{r}
 algorithms <- c("KNN", "Logistic Regression", "Random Forest", "Neural Network")
 accuracy <- c(max(knn_survived_caret_CV3$results$Accuracy),  
