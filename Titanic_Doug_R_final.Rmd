@@ -12,12 +12,30 @@ output:
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-
-## load caret and the training data
+## Caret Package
+  * wrapper for many different ML algorithms
+  * allows you to easily try different parameters specific to each algorithm
+  * integrates resampling methods to select best set of parameters
+  * provides many defaults so you can use out of box relatively easily, but almost anything can be manually changed
+  * also allows for imputation of missing values
+    * will increase numbers for more accuracy and will be able to compare to real test set (can't remove NAs from that set)
+  
 ```{r, message=FALSE}
-
+# install/load caret package 
+#install.packages("caret")
 library(caret)
+```
 
+## Resampling - bootstrap vs cross validation
+##### caret allows for easy use of strategies to assess model efficiency without having to explicitly separate out a test set of data
+
+![](./bootrap_concept.png)
+
+## Resampling -bootstrap vs cross validation 
+![](./cross_validation.jpeg)
+
+## Load the training data
+```{r}
 train <- read.table("./train.csv", sep = ",", header = TRUE)
 
 str(train)
@@ -26,20 +44,12 @@ train$Sex <- as.integer(train$Sex) - 1
 
 ```
 
-
-## Use caret for imputation of missing values k-nearest neighbor 
-#### Allow us to incease our numbers  and to test against real test set (can't remove NAs from that set)
-
-```{r}
-# actually caret allows for easy use of strategies to assess model efficiency without having to separate out a test set of data
-# default is bootstrapping, we will use cross validation
-```
-
-## how to transform data? What about age?
-```{r, fig1, fig.height = 4, fig.width = 7, fig.align = "center"}
+## How to transform data? What about age?
+```{r, fig1, fig.height = 4, fig.width = 7, fig.align = "center", warning=FALSE}
 
 # look at histograms of the two continuous variables to think about transformation
 ggplot(train, aes(Age)) + geom_density(alpha=0.5, aes(fill=factor(Survived))) + geom_vline(xintercept = 10)
+train$is_child <- as.integer(train$Age < 10)
 ```
 
 ## Transform Fare?
@@ -47,77 +57,78 @@ ggplot(train, aes(Age)) + geom_density(alpha=0.5, aes(fill=factor(Survived))) + 
 par(mfrow=c(1,2))
 hist(train$Fare)
 hist(log(train$Fare))
-
+train$logfare <- log(train$Fare + 1)
 ```
 
-## transform features 
-```{r feature_transform, cache=TRUE}
+## Simplify family size indicators 
+```{r feature_transform, fig4, fig.height = 4, fig.width = 7, fig.align = "center", cache=TRUE}
+# Sibsp: # of siblings and spouses aboard
+# Parch: # of parents and children aboard
 
-train$logfare <- log(train$Fare + 1)
-train$is_child <- as.integer(train$Age < 10)
 train$fam_size <- train$SibSp + train$Parch
+ggplot(train, aes(fam_size)) + geom_density(alpha=0.5, aes(fill=factor(Survived)))
 
-# remove variables that I definitely don't think matter (I could be wrong!)
-train_sub <- train[, c(2,3,5,6,7,8,10, 13, 14,15)]
-str(train_sub)
+train$single <- as.integer(train$fam_size == 0)
+train$fam_too_big <- as.integer(train$fam_size > 3) 
 
 ```
 
 ## How do variables correlate with survival?
 ```{r}
+sub <- c("Survived","Pclass","Sex","Age", "is_child","SibSp", "Parch", "fam_size","single","fam_too_big", "Fare","logfare")
+train_sub <- train[colnames(train) %in% sub]
 cor(na.omit(train_sub))
-# looks like logfare correlates a little better than Fare with survival
-
 ```
 
 
-## Features will include logFare, family, and is_child 
+## Subset features 
 ```{r}
-
-# ermove W_C and add is_child
-features3 <- train[, c(3,5,13,14, 15)]
+features3_names <- c("Pclass", "Sex", "logfare", "is_child", "single", "fam_too_big")
+features3 <- train[, colnames(train) %in% features3_names]
 str(features3)
 
 ```
 
-## bootstrap vs cross validation
-
-![](./bootrap_concept.png)
-
-## bootstrap vs cross validation 
-![](./cross_validation.jpeg)
-
-## set up the training parameters 
+## Back to caret - set up the training parameters 
 ```{r trainControl}
 
-# this will split data set into 10 groups, and continually train on 90% and test on the remaining 10% for all groups
-# this is repeated 5 times
 fitControl <- trainControl( 
-    method="repeatedcv",
-    number=10,
-    repeats=5,
+    method="repeatedcv", # cross-validation (default is bootstrapping)
+    number=10, # this will split data set into 10 groups, and continually train on 90% and test on the remaining 10% for all groups
+    repeats=5, # repeat the CV 5 times for each model
     verboseIter=TRUE,
     savePredictions = TRUE)
-
 
 ```
 
 ## k-nearest neighbor with cross validation
 ```{r knn_CV2,cache=TRUE, results='hide',dependson='feature_transform'}
-# include Fam and log fare, not Fare and components of family, and add W_C (from above)
+
 set.seed(1)
-knn_survived_caret_CV3 <- train(features3, 
-                            as.factor(train$Survived), 
+knn_survived_caret_CV3 <- train(features3, # features
+                            as.factor(train$Survived), # outcome
                             method = "knn",
-                            trControl=fitControl,
-                            tuneLength = 12, 
-                            preProcess = "knnImpute")
+                            trControl=fitControl, # use the parameters set previously
+                            tuneLength = 12, # this means that caret will choose 12 different values for key parameters 
+                            preProcess = "knnImpute") # will use KNN to fill in missing values 
 ```
-## look at KNN model
+## Look at KNN model
 ```{r, dependson='knn_CV2'}
 knn_survived_caret_CV3
-
 ```
+## Can easily visualize which parameter is best with ggplot and model
+```{r, fig3, fig.height = 4, fig.width = 7, fig.align = "center"}
+ggplot(knn_survived_caret_CV3)
+```
+
+## Logistic Regression 
+#### Logit function - a "generalized linear model" which allows you to solve classification problems with linear regression
+
+![](./logit.png)
+
+  * for every one unit increase in X the log odds will increase by beta, holding all other features constant
+    * e.g. beta = 0.67, to get odds from log odds, e^0.67 = 2.
+    * this means if beta = 0.67 you would be twice as likely to survive if X = 1 as opposed to X = 0
 
 ## logistic regression - fill NAs with knnImpute
 ```{r LR_CV2_knn, cache=TRUE, results='hide', dependson='feature_transform'}
@@ -127,14 +138,12 @@ LR_survived_caret_CV3 <- train(features3,
                             family = "binomial",
                             trControl=fitControl,
                             preProcess = "knnImpute")
-print("done")
 ```
-## look at the LR model
+## Look at the LR model
 ```{r, dependson='LR_CV2_knn'}
 summary(LR_survived_caret_CV3)
-
 ```
-## look at the LR model
+## Look at the LR model
 ```{r, dependson='LR_CV2_knn'}
 LR_survived_caret_CV3$results
 ```
@@ -150,13 +159,23 @@ set.seed(1)
 rf_survived_caret_CV3_knnimpute <- train(features3, 
                             as.factor(train$Survived), 
                             method = "rf", 
+                            ntree = 500, # the number of trees used to make forest
                             trControl=fitControl,
                             preProcess = "knnImpute")
 ```
-## look at the RF model
+## Look at the RF model
 ```{r, dependson='rf_CV2_knnimpute'}
 rf_survived_caret_CV3_knnimpute
 ```
+
+## Can also get importance measures for each feature
+
+```{r}
+varImp(rf_survived_caret_CV3_knnimpute, scale = FALSE)
+# mean decrease in classification accuracy after permuting that feature over all trees
+# i.e. decrease in accuracy in out-of-bag passengers after feature is shuffled 
+```
+
 
 ## Neural Network - knnImpute to fill NAs
 
@@ -169,10 +188,18 @@ nn_survived_caret_CV3_knnimpute <- train(features3,
                             preProcess = "knnImpute")
 
 ```
-## look at the NN model
+## Look at the NN model
 ```{r, dependson='nn_CV2_knn'}
 nn_survived_caret_CV3_knnimpute
+
 ```
+
+## Varible importance
+```{r}
+varImp(nn_survived_caret_CV3_knnimpute, scale = FALSE)
+
+```
+
 
 
 ## test the models on the test data
@@ -181,10 +208,12 @@ nn_survived_caret_CV3_knnimpute
 test <- read.delim("./test.csv", sep = ",", header = TRUE)
 
 test$Sex <- as.integer(test$Sex) - 1
-test$fam_size <- test$SibSp + test$Parch
-test$logfare <- log(test$Fare + 1)
 test$is_child <- as.integer(test$Age < 10)
-test$W_C <- as.integer(test$Sex == 0 | test$Age < 10)
+test$logfare <- log(test$Fare + 1)
+test$fam_size <- test$SibSp + test$Parch
+test$single <- as.integer(test$fam_size == 0)
+test$fam_too_big <- as.integer(test$fam_size > 3) 
+
 ```
 
 ## look at test data (with transformations)
@@ -196,8 +225,8 @@ str(test)
 
 ## subset test data as we did for training data
 ```{r}
-
-features3_test <- test[, c(2,4,12,13,14)]
+test_names <- c("Pclass", "Sex", "logfare", "is_child", "single", "fam_too_big")
+features3_test <- test[, colnames(test) %in% test_names]
 str(features3_test)
 str(features3)
 
@@ -209,19 +238,52 @@ str(features3)
 # predict knn cross validation2
 predictions_test_submit_knnCV3 <- data.frame(PassengerId = test$PassengerId, Survived = predict(knn_survived_caret_CV3, features3_test))
 head(predictions_test_submit_knnCV3)
-#write.table(predictions_test_submit_knnCV3, "./test_knn_CV3.csv", sep = ",", row.names = FALSE)
+#write.table(predictions_test_submit_knnCV3, "./test_knn_CV_fam.csv", sep = ",", row.names = FALSE)
 
 ## logistic regression - features set3 - knnimpute
 predictions_test_submit_LR_CV3 <- data.frame(PassengerId = test$PassengerId, Survived = predict(LR_survived_caret_CV3, features3_test))
-#write.table(predictions_test_submit_LR_CV3, "./test_LR_CV_features3_knnimpute.csv", sep = ",", row.names = FALSE)
+#write.table(predictions_test_submit_LR_CV3, "./test_LR_CV_features3_fam_knnimpute.csv", sep = ",", row.names = FALSE)
 
 # predict rf cross validation knnimpute
 predictions_test_submit_rf_CV3_knnimpute <- data.frame(PassengerId = test$PassengerId, Survived = predict(rf_survived_caret_CV3_knnimpute, features3_test))
-#write.table(predictions_test_submit_rf_CV3_knnimpute, "./test_rf_CV3_knnimpute.csv", sep = ",", row.names = FALSE)
+#write.table(predictions_test_submit_rf_CV3_knnimpute, "./test_rf_CV3_fam_knnimpute.csv", sep = ",", row.names = FALSE)
 
 # predict nn cross validation knnimpute
 predictions_test_submit_nn_CV3_knnimpute <- data.frame(PassengerId = test$PassengerId, Survived = predict(nn_survived_caret_CV3_knnimpute, features3_test))
-#write.table(predictions_test_submit_nn_CV3_knnimpute, "./test_nn_CV3_knnimpute.csv", sep = ",", row.names = FALSE)
+#write.table(predictions_test_submit_nn_CV3_knnimpute, "./test_nn_CV3_fam_knnimpute.csv", sep = ",", row.names = FALSE)
 
+```
+
+## How did we do?
+
+```{r}
+algorithms <- c("KNN", "Logistic Regression", "Random Forest", "Neural Network")
+accuracy <- c(max(knn_survived_caret_CV3$results$Accuracy),  
+                max(LR_survived_caret_CV3$results$Accuracy),
+                max(rf_survived_caret_CV3_knnimpute$results$Accuracy),
+                max(nn_survived_caret_CV3_knnimpute$results$Accuracy))
+
+kaggle_transformed <- c(0.7655, 0.7703, 0.8038, 0.7703)
+
+data.frame(row.names = algorithms, 
+           accuracy, 
+           kaggle_transformed)
+
+```
+
+## Is this better than untransformed features?
+#### redid the above modeling with these features...
+```{r}
+features_NT_names <- c("Pclass", "Sex", "Age", "SibSp", "Parch", "Fare")
+features_NT <- train[, colnames(train) %in% features_NT_names]
+str(features_NT)
+```
+
+## Is this better than untransformed features?
+```{r}
+kaggle_nontransformed <- c(0.7703, 0.7519, 0.7560, 0.7512)
+data.frame(row.names = algorithms, 
+           kaggle_transformed,
+           kaggle_nontransformed)
 ```
 
