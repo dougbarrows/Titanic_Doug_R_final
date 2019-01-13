@@ -125,6 +125,7 @@ fitControl <- trainControl(
 ```
 
 ## k-nearest neighbor with cross validation
+#### fill in NAs with knnImpute
 ```{r knn_CV2,cache=TRUE, results='hide',dependson='feature_transform'}
 knn_survived_caret_CV3 <- train(features3, # features
                             as.factor(train$Survived), # outcome
@@ -151,7 +152,8 @@ ggplot(knn_survived_caret_CV3)
     * e.g. beta = 0.67, to get odds from log odds, e^0.67 = 2.
     * this means if beta = 0.67 you would be twice as likely to survive if X = 1 as opposed to X = 0
 
-## logistic regression - fill NAs with knnImpute
+## Logistic Regression
+#### fill NAs with knnImpute
 ```{r LR_CV2_knn, cache=TRUE, results='hide', dependson='feature_transform'}
 LR_survived_caret_CV3 <- train(features3, 
                             as.factor(train$Survived), 
@@ -174,7 +176,8 @@ LR_survived_caret_CV3$results
 ![](./randomforest.png)
 
 
-## Random forests - knnImpute to fill NAs
+## Random Forests
+#### knnImpute to fill NAs
 ```{r rf_CV2_knnimpute, cache=TRUE, results='hide', dependson='feature_transform'}
 set.seed(1)
 rf_survived_caret_CV3_knnimpute <- train(features3, 
@@ -198,7 +201,7 @@ varImp(rf_survived_caret_CV3_knnimpute, scale = FALSE)
 ```
 
 
-## Neural Network - knnImpute to fill NAs
+## Neural Network - cause why not?
 
 ```{r nn_CV2_knn, cache=TRUE, results='hide', dependson='feature_transform'}
 set.seed(1)
@@ -292,3 +295,5 @@ data.frame(row.names = algorithms,
            kaggle_nontransformed)
 ```
 
+## The End - thanks!
+ 
