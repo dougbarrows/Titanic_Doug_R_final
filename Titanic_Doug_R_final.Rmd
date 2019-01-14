@@ -50,7 +50,6 @@ ggplot(train, aes(Age)) +
   geom_density(alpha=0.5, aes(fill=factor(Survived))) + 
   geom_vline(xintercept = 10) +
   theme(legend.position = "bottom")
-
 train$is_child <- as.integer(train$Age < 10) # make a column specifying child or not
 
 ```
@@ -59,12 +58,12 @@ train$is_child <- as.integer(train$Age < 10) # make a column specifying child or
 ```{r, fig2, fig.height = 4, fig.width = 6, fig.align = "center", warning=FALSE}
 # look specifically whether a child is more likely to survive
 ggplot(train, aes(x = is_child, fill=factor(Survived))) + 
-  geom_bar(position = "dodge") 
+  geom_bar(position = "dodge")
 ```
 
 
 ## Transform Fare?
-```{r, fig3, fig.height = 4, fig.width = 7, fig.align = "center"}
+```{r, fig3, fig.height = 3, fig.width = 7, fig.align = "center"}
 par(mfrow=c(1,2))
 hist(train$Fare)
 hist(log(train$Fare))
@@ -72,7 +71,7 @@ train$logfare <- log(train$Fare + 1)
 ```
 
 ## Simplify family size indicators 
-```{r, fig4, fig.height = 4, fig.width = 6, fig.align = "center", warning=FALSE}
+```{r, fig4, fig.height = 3, fig.width = 6, fig.align = "center", warning=FALSE}
 # Sibsp: # of siblings and spouses aboard
 # Parch: # of parents and children aboard
 train$fam_size <- train$SibSp + train$Parch
@@ -134,6 +133,8 @@ knn_survived_caret_CV3 <- train(features3, # features
                             tuneLength = 12, # this means that caret will choose 12 different values for key parameters 
                             preProcess = "knnImpute") # will use KNN to fill in missing values 
 ```
+[link to available algorithms in caret package](https://rdrr.io/cran/caret/man/models.html)
+
 ## Look at KNN model
 ```{r, dependson='knn_CV2'}
 knn_survived_caret_CV3
@@ -162,13 +163,30 @@ LR_survived_caret_CV3 <- train(features3,
                             trControl=fitControl,
                             preProcess = "knnImpute")
 ```
+
+## Look at the LR model
+```{r, dependson='LR_CV2_knn'}
+LR_survived_caret_CV3$results
+```
+
 ## Look at the LR model
 ```{r, dependson='LR_CV2_knn'}
 summary(LR_survived_caret_CV3)
 ```
-## Look at the LR model
-```{r, dependson='LR_CV2_knn'}
-LR_survived_caret_CV3$results
+
+```{r,echo=FALSE, results='hide', cache=TRUE}
+features_single_test <- features3[, !(colnames(features3) %in% c("Sex", "Pclass", "logfare"))]
+LR_survived_caret_single_test <- train(features_single_test, 
+                            as.factor(train$Survived), 
+                            method = "glm", 
+                            family = "binomial",
+                            trControl=fitControl,
+                            preProcess = "knnImpute")
+```
+
+## Single feature without sex or indicators of wealth
+```{r}
+summary(LR_survived_caret_single_test)
 ```
 
 ## Random Forests!
