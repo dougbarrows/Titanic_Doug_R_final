@@ -2115,7 +2115,7 @@ document.getElementsByTagName('head')[0].appendChild(style);
 <a class="sourceLine" id="cb29-4" title="4">                            <span class="dt">method =</span> <span class="st">&quot;rf&quot;</span>, </a>
 <a class="sourceLine" id="cb29-5" title="5">                            <span class="dt">ntree =</span> <span class="dv">500</span>, <span class="co"># the number of trees used to make forest</span></a>
 <a class="sourceLine" id="cb29-6" title="6">                            <span class="dt">trControl=</span>fitControl,</a>
-<a class="sourceLine" id="cb29-7" title="7">                            <span class="dt">tuneLength =</span> <span class="dv">3</span>,</a>
+<a class="sourceLine" id="cb29-7" title="7">                            <span class="dt">tuneGrid =</span> <span class="kw">expand.grid</span>(<span class="dt">mtry =</span> <span class="kw">c</span>(<span class="dv">2</span>, <span class="dv">4</span>, <span class="dv">6</span>)),</a>
 <a class="sourceLine" id="cb29-8" title="8">                            <span class="dt">preProcess =</span> <span class="st">&quot;knnImpute&quot;</span>)</a></code></pre></div>
 </section>
 <section id="look-at-the-rf-model" class="slide level2">

@@ -203,7 +203,7 @@ rf_survived_caret_CV3_knnimpute <- train(features3,
                             method = "rf", 
                             ntree = 500, # the number of trees used to make forest
                             trControl=fitControl,
-                            tuneLength = 3,
+                            tuneGrid = expand.grid(mtry = c(2, 4, 6)),
                             preProcess = "knnImpute")
 ```
 ## Look at the RF model
