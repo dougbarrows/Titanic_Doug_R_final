@@ -1835,10 +1835,10 @@ document.getElementsByTagName('head')[0].appendChild(style);
     <h3 class="date">1/16/2019</h3>
 </section>
 
-<section id="caret-package" class="slide level2">
-<h2>Caret Package</h2>
+<section id="caret-classification-and-regression-training" class="slide level2">
+<h2>Caret (Classification And REgression Training)</h2>
 <ul>
-<li>wrapper for many different ML algorithms</li>
+<li>wrapper for <a href="https://rdrr.io/cran/caret/man/models.html">many different ML algorithms</a></li>
 <li>allows you to easily try different parameters specific to each algorithm</li>
 <li>integrates resampling methods to select best set of parameters</li>
 <li>provides many defaults so you can use out of box relatively easily, but almost anything can be manually changed</li>
@@ -1978,7 +1978,6 @@ document.getElementsByTagName('head')[0].appendChild(style);
 <a class="sourceLine" id="cb18-4" title="4">                            <span class="dt">trControl=</span>fitControl, <span class="co"># use the parameters set previously</span></a>
 <a class="sourceLine" id="cb18-5" title="5">                            <span class="dt">tuneLength =</span> <span class="dv">12</span>, <span class="co"># this means that caret will choose 12 different values for key parameters </span></a>
 <a class="sourceLine" id="cb18-6" title="6">                            <span class="dt">preProcess =</span> <span class="st">&quot;knnImpute&quot;</span>) <span class="co"># will use KNN to fill in missing values </span></a></code></pre></div>
-<p><a href="https://rdrr.io/cran/caret/man/models.html">link to available algorithms in caret package</a></p>
 </section>
 <section id="look-at-knn-model" class="slide level2">
 <h2>Look at KNN model</h2>
@@ -2116,7 +2115,8 @@ document.getElementsByTagName('head')[0].appendChild(style);
 <a class="sourceLine" id="cb29-4" title="4">                            <span class="dt">method =</span> <span class="st">&quot;rf&quot;</span>, </a>
 <a class="sourceLine" id="cb29-5" title="5">                            <span class="dt">ntree =</span> <span class="dv">500</span>, <span class="co"># the number of trees used to make forest</span></a>
 <a class="sourceLine" id="cb29-6" title="6">                            <span class="dt">trControl=</span>fitControl,</a>
-<a class="sourceLine" id="cb29-7" title="7">                            <span class="dt">preProcess =</span> <span class="st">&quot;knnImpute&quot;</span>)</a></code></pre></div>
+<a class="sourceLine" id="cb29-7" title="7">                            <span class="dt">tuneLength =</span> <span class="dv">3</span>,</a>
+<a class="sourceLine" id="cb29-8" title="8">                            <span class="dt">preProcess =</span> <span class="st">&quot;knnImpute&quot;</span>)</a></code></pre></div>
 </section>
 <section id="look-at-the-rf-model" class="slide level2">
 <h2>Look at the RF model</h2>
@@ -2162,7 +2162,8 @@ document.getElementsByTagName('head')[0].appendChild(style);
 <a class="sourceLine" id="cb35-3" title="3">                            <span class="kw">as.factor</span>(train<span class="op">$</span>Survived), </a>
 <a class="sourceLine" id="cb35-4" title="4">                            <span class="dt">method =</span> <span class="st">&quot;nnet&quot;</span>, </a>
 <a class="sourceLine" id="cb35-5" title="5">                            <span class="dt">trControl=</span>fitControl,</a>
-<a class="sourceLine" id="cb35-6" title="6">                            <span class="dt">preProcess =</span> <span class="st">&quot;knnImpute&quot;</span>)</a></code></pre></div>
+<a class="sourceLine" id="cb35-6" title="6">                            <span class="dt">tuneLength =</span> <span class="dv">12</span>,</a>
+<a class="sourceLine" id="cb35-7" title="7">                            <span class="dt">preProcess =</span> <span class="st">&quot;knnImpute&quot;</span>)</a></code></pre></div>
 </section>
 <section id="look-at-the-nn-model" class="slide level2">
 <h2>Look at the NN model</h2>
@@ -2178,19 +2179,154 @@ document.getElementsByTagName('head')[0].appendChild(style);
 ## Summary of sample sizes: 802, 802, 802, 802, 802, 802, ... 
 ## Resampling results across tuning parameters:
 ## 
-##   size  decay  Accuracy   Kappa    
-##   1     0e+00  0.8231488  0.6126215
-##   1     1e-04  0.8236008  0.6138395
-##   1     1e-01  0.8202275  0.6064098
-##   3     0e+00  0.8251666  0.6166087
-##   3     1e-04  0.8262978  0.6188542
-##   3     1e-01  0.8321254  0.6312270
-##   5     0e+00  0.8251462  0.6170602
-##   5     1e-04  0.8278732  0.6224716
-##   5     1e-01  0.8276310  0.6213383
+##   size  decay         Accuracy   Kappa    
+##    1    0.0000000000  0.8213512  0.6083857
+##    1    0.0001000000  0.8231439  0.6120353
+##    1    0.0001995262  0.8179879  0.6020203
+##    1    0.0003981072  0.8206820  0.6066996
+##    1    0.0007943282  0.8222500  0.6099780
+##    1    0.0015848932  0.8224772  0.6107779
+##    1    0.0031622777  0.8213561  0.6084198
+##    1    0.0063095734  0.8206745  0.6062618
+##    1    0.0125892541  0.8218006  0.6082202
+##    1    0.0251188643  0.8218030  0.6087119
+##    1    0.0501187234  0.8213535  0.6082566
+##    1    0.1000000000  0.8206744  0.6076143
+##    3    0.0000000000  0.8287570  0.6246625
+##    3    0.0001000000  0.8233762  0.6122308
+##    3    0.0001995262  0.8265173  0.6194876
+##    3    0.0003981072  0.8264872  0.6191501
+##    3    0.0007943282  0.8287695  0.6235740
+##    3    0.0015848932  0.8319056  0.6309815
+##    3    0.0031622777  0.8242674  0.6144110
+##    3    0.0063095734  0.8260527  0.6182394
+##    3    0.0125892541  0.8312365  0.6297410
+##    3    0.0251188643  0.8267419  0.6187235
+##    3    0.0501187234  0.8305523  0.6281675
+##    3    0.1000000000  0.8271865  0.6215438
+##    5    0.0000000000  0.8242650  0.6146571
+##    5    0.0001000000  0.8249393  0.6170392
+##    5    0.0001995262  0.8294310  0.6267126
+##    5    0.0003981072  0.8305598  0.6289427
+##    5    0.0007943282  0.8247423  0.6166400
+##    5    0.0015848932  0.8303224  0.6277969
+##    5    0.0031622777  0.8244922  0.6155851
+##    5    0.0063095734  0.8294237  0.6254644
+##    5    0.0125892541  0.8276106  0.6233004
+##    5    0.0251188643  0.8271914  0.6214160
+##    5    0.0501187234  0.8300978  0.6269151
+##    5    0.1000000000  0.8298857  0.6267560
+##    7    0.0000000000  0.8227071  0.6126328
+##    7    0.0001000000  0.8242625  0.6156752
+##    7    0.0001995262  0.8240227  0.6156393
+##    7    0.0003981072  0.8200102  0.6075589
+##    7    0.0007943282  0.8254087  0.6191309
+##    7    0.0015848932  0.8262999  0.6200947
+##    7    0.0031622777  0.8244796  0.6152347
+##    7    0.0063095734  0.8233710  0.6131163
+##    7    0.0125892541  0.8231591  0.6138477
+##    7    0.0251188643  0.8303376  0.6275844
+##    7    0.0501187234  0.8274113  0.6216228
+##    7    0.1000000000  0.8303276  0.6279803
+##    9    0.0000000000  0.8238308  0.6154893
+##    9    0.0001000000  0.8175710  0.6028714
+##    9    0.0001995262  0.8173237  0.6026511
+##    9    0.0003981072  0.8224721  0.6138302
+##    9    0.0007943282  0.8193210  0.6064363
+##    9    0.0015848932  0.8202275  0.6087276
+##    9    0.0031622777  0.8204522  0.6081786
+##    9    0.0063095734  0.8240554  0.6151410
+##    9    0.0125892541  0.8251790  0.6173926
+##    9    0.0251188643  0.8244922  0.6163137
+##    9    0.0501187234  0.8262900  0.6188220
+##    9    0.1000000000  0.8312466  0.6294961
+##   11    0.0000000000  0.8166595  0.6025767
+##   11    0.0001000000  0.8139552  0.5970644
+##   11    0.0001995262  0.8227146  0.6141707
+##   11    0.0003981072  0.8186620  0.6051525
+##   11    0.0007943282  0.8204470  0.6087418
+##   11    0.0015848932  0.8244997  0.6183473
+##   11    0.0031622777  0.8209065  0.6104047
+##   11    0.0063095734  0.8218206  0.6105792
+##   11    0.0125892541  0.8238181  0.6146432
+##   11    0.0251188643  0.8236008  0.6140153
+##   11    0.0501187234  0.8280928  0.6229069
+##   11    0.1000000000  0.8305624  0.6281238
+##   13    0.0000000000  0.8143925  0.5961904
+##   13    0.0001000000  0.8130488  0.5944205
+##   13    0.0001995262  0.8150863  0.5985773
+##   13    0.0003981072  0.8153035  0.5984974
+##   13    0.0007943282  0.8166368  0.6023271
+##   13    0.0015848932  0.8211290  0.6110057
+##   13    0.0031622777  0.8159602  0.6002383
+##   13    0.0063095734  0.8204520  0.6089327
+##   13    0.0125892541  0.8215756  0.6108264
+##   13    0.0251188643  0.8222374  0.6112670
+##   13    0.0501187234  0.8276309  0.6222232
+##   13    0.1000000000  0.8310144  0.6291602
+##   15    0.0000000000  0.8103296  0.5897844
+##   15    0.0001000000  0.8139628  0.5972381
+##   15    0.0001995262  0.8166545  0.6025217
+##   15    0.0003981072  0.8105668  0.5893944
+##   15    0.0007943282  0.8112713  0.5905924
+##   15    0.0015848932  0.8159776  0.6014330
+##   15    0.0031622777  0.8179778  0.6051323
+##   15    0.0063095734  0.8170938  0.6020773
+##   15    0.0125892541  0.8226944  0.6125921
+##   15    0.0251188643  0.8222448  0.6115296
+##   15    0.0501187234  0.8258405  0.6186810
+##   15    0.1000000000  0.8323652  0.6319118
+##   17    0.0000000000  0.8090041  0.5860573
+##   17    0.0001000000  0.8134883  0.5965673
+##   17    0.0001995262  0.8125969  0.5935814
+##   17    0.0003981072  0.8184623  0.6064260
+##   17    0.0007943282  0.8130487  0.5951850
+##   17    0.0015848932  0.8148416  0.5988915
+##   17    0.0031622777  0.8152860  0.5993123
+##   17    0.0063095734  0.8164273  0.6007730
+##   17    0.0125892541  0.8195633  0.6057097
+##   17    0.0251188643  0.8238331  0.6154210
+##   17    0.0501187234  0.8258456  0.6183439
+##   17    0.1000000000  0.8334837  0.6343174
+##   19    0.0000000000  0.8112510  0.5912807
+##   19    0.0001000000  0.8088093  0.5862724
+##   19    0.0001995262  0.8123846  0.5944994
+##   19    0.0003981072  0.8146218  0.5985421
+##   19    0.0007943282  0.8157555  0.6000023
+##   19    0.0015848932  0.8148466  0.5995897
+##   19    0.0031622777  0.8173336  0.6036383
+##   19    0.0063095734  0.8188916  0.6062667
+##   19    0.0125892541  0.8179852  0.6028802
+##   19    0.0251188643  0.8229141  0.6127087
+##   19    0.0501187234  0.8269667  0.6207890
+##   19    0.1000000000  0.8330419  0.6335299
+##   21    0.0000000000  0.8076580  0.5830908
+##   21    0.0001000000  0.8094531  0.5874547
+##   21    0.0001995262  0.8170964  0.6032448
+##   21    0.0003981072  0.8081122  0.5859085
+##   21    0.0007943282  0.8146219  0.5987666
+##   21    0.0015848932  0.8141801  0.5987447
+##   21    0.0031622777  0.8180027  0.6056394
+##   21    0.0063095734  0.8173235  0.6031954
+##   21    0.0125892541  0.8184346  0.6039427
+##   21    0.0251188643  0.8224746  0.6117464
+##   21    0.0501187234  0.8256158  0.6179802
+##   21    0.1000000000  0.8310119  0.6292255
+##   23    0.0000000000  0.8121751  0.5930446
+##   23    0.0001000000  0.8173310  0.6043298
+##   23    0.0001995262  0.8130665  0.5957227
+##   23    0.0003981072  0.8135186  0.5970565
+##   23    0.0007943282  0.8137205  0.5971012
+##   23    0.0015848932  0.8148414  0.5990910
+##   23    0.0031622777  0.8186542  0.6077166
+##   23    0.0063095734  0.8179727  0.6049145
+##   23    0.0125892541  0.8173110  0.6017165
+##   23    0.0251188643  0.8179802  0.6021169
+##   23    0.0501187234  0.8260704  0.6189750
+##   23    0.1000000000  0.8303401  0.6275776
 ## 
 ## Accuracy was used to select the optimal model using the largest value.
-## The final values used for the model were size = 3 and decay = 0.1.</code></pre>
+## The final values used for the model were size = 17 and decay = 0.1.</code></pre>
 </section>
 <section id="test-data" class="slide level2">
 <h2>Test data!</h2>
@@ -2268,7 +2404,7 @@ document.getElementsByTagName('head')[0].appendChild(style);
 ## KNN                 0.8255768             0.7655
 ## Logistic Regression 0.8089969             0.7703
 ## Random Forest       0.8352563             0.8038
-## Neural Network      0.8321254             0.7703</code></pre>
+## Neural Network      0.8334837             0.7703</code></pre>
 </section>
 <section id="is-this-better-than-untransformed-features" class="slide level2">
 <h2>Is this better than untransformed features?</h2>

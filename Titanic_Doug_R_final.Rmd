@@ -12,8 +12,8 @@ output:
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-## Caret Package
-  * wrapper for many different ML algorithms
+## Caret (Classification And REgression Training)
+  * wrapper for [many different ML algorithms](https://rdrr.io/cran/caret/man/models.html)
   * allows you to easily try different parameters specific to each algorithm
   * integrates resampling methods to select best set of parameters
   * provides many defaults so you can use out of box relatively easily, but almost anything can be manually changed
@@ -133,7 +133,7 @@ knn_survived_caret_CV3 <- train(features3, # features
                             tuneLength = 12, # this means that caret will choose 12 different values for key parameters 
                             preProcess = "knnImpute") # will use KNN to fill in missing values 
 ```
-[link to available algorithms in caret package](https://rdrr.io/cran/caret/man/models.html)
+
 
 ## Look at KNN model
 ```{r, dependson='knn_CV2'}
@@ -203,6 +203,7 @@ rf_survived_caret_CV3_knnimpute <- train(features3,
                             method = "rf", 
                             ntree = 500, # the number of trees used to make forest
                             trControl=fitControl,
+                            tuneLength = 3,
                             preProcess = "knnImpute")
 ```
 ## Look at the RF model
@@ -227,6 +228,7 @@ nn_survived_caret_CV3_knnimpute <- train(features3,
                             as.factor(train$Survived), 
                             method = "nnet", 
                             trControl=fitControl,
+                            tuneLength = 12,
                             preProcess = "knnImpute")
 
 ```
